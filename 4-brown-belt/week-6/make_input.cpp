@@ -42,9 +42,12 @@ int main() {
 		cout << "\n";
 	}
 
-	cout << MAX_REQS << "\n";
+	cout << (MAX_REQS + MAX_REQS) << "\n";
 	for (unsigned int i = 0; i < MAX_REQS; ++i) {
 		cout << "Bus " << (BUS_OFFSET + rand() % MAX_BUSSES) << "\n";
+	}
+	for (unsigned int i = 0; i < MAX_REQS; ++i) {
+		cout << "Stop " << input_data[rand() % input_data.size()].m_name << "\n";
 	}
 
 	return 0;
