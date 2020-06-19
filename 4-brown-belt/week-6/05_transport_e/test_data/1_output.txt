@@ -1,0 +1,68 @@
+[
+  {
+    "request_id": 1,
+    "route_length": 5990,
+    "curvature": 1.42963,
+    "stop_count": 4,
+    "unique_stop_count": 3
+  },
+  {
+    "request_id": 2,
+    "route_length": 11570,
+    "curvature": 1.30156,
+    "stop_count": 5,
+    "unique_stop_count": 3
+  },
+  {
+    "request_id": 3,
+    "buses": [
+      "297",
+      "635"
+    ]
+  },
+  {
+    "request_id": 4,
+    "total_time": 11.235,
+    "items": [
+        {
+            "type": "Wait",
+            "stop_name": "Biryulyovo Zapadnoye",
+            "time": 6
+        },
+        {
+            "type": "Bus",
+            "bus": "297",
+            "time": 5.235,
+            "span_count": 2
+        }
+    ]
+  },
+  {
+    "request_id": 5,
+    "total_time": 24.21,
+    "items": [
+        {
+            "type": "Wait",
+            "stop_name": "Biryulyovo Zapadnoye",
+            "time": 6
+        },
+        {
+            "type": "Bus",
+            "bus": "297",
+            "time": 3.9,
+            "span_count": 1
+        },
+        {
+            "type": "Wait",
+            "stop_name": "Biryulyovo Tovarnaya",
+            "time": 6
+        },
+        {
+            "type": "Bus",
+            "bus": "635",
+            "time": 8.31,
+            "span_count": 2
+        }
+    ]
+  }
+]

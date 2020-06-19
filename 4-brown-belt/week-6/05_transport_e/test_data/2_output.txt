@@ -1,0 +1,170 @@
+[
+  {
+    "request_id": 1,
+    "route_length": 5880,
+    "curvature": 1.36159,
+    "stop_count": 6,
+    "unique_stop_count": 5
+  },
+  {
+    "request_id": 2,
+    "route_length": 14810,
+    "curvature": 1.12195,
+    "stop_count": 11,
+    "unique_stop_count": 6
+  },
+  {
+    "request_id": 3,
+    "route_length": 15790,
+    "curvature": 1.31245,
+    "stop_count": 11,
+    "unique_stop_count": 6
+  },
+  {
+    "request_id": 4,
+    "buses": [
+      "297",
+      "635",
+      "828"
+    ]
+  },
+  {
+    "request_id": 5,
+    "total_time": 7.42,
+    "items": [
+        {
+            "type": "Wait",
+            "stop_name": "Biryulyovo Zapadnoye",
+            "time": 2
+        },
+        {
+            "type": "Bus",
+            "bus": "828",
+            "time": 3,
+            "span_count": 2
+        },
+        {
+            "type": "Wait",
+            "stop_name": "Biryusinka",
+            "time": 2
+        },
+        {
+            "type": "Bus",
+            "bus": "297",
+            "time": 0.42,
+            "span_count": 1
+        }
+    ]
+  },
+  {
+    "request_id": 6,
+    "total_time": 11.44,
+    "items": [
+        {
+            "type": "Wait",
+            "stop_name": "Biryulyovo Zapadnoye",
+            "time": 2
+        },
+        {
+            "type": "Bus",
+            "bus": "828",
+            "time": 9.44,
+            "span_count": 4
+        }
+    ]
+  },
+  {
+    "request_id": 7,
+    "total_time": 10.7,
+    "items": [
+        {
+            "type": "Wait",
+            "stop_name": "Biryulyovo Tovarnaya",
+            "time": 2
+        },
+        {
+            "type": "Bus",
+            "bus": "297",
+            "time": 1.78,
+            "span_count": 1
+        },
+        {
+            "type": "Wait",
+            "stop_name": "Universam",
+            "time": 2
+        },
+        {
+            "type": "Bus",
+            "bus": "828",
+            "time": 4.92,
+            "span_count": 1
+        }
+    ]
+  },
+  {
+    "request_id": 8,
+    "total_time": 8.56,
+    "items": [
+        {
+            "type": "Wait",
+            "stop_name": "Biryulyovo Tovarnaya",
+            "time": 2
+        },
+        {
+            "type": "Bus",
+            "bus": "297",
+            "time": 6.56,
+            "span_count": 4
+        }
+    ]
+  },
+  {
+    "request_id": 9,
+    "total_time": 16.32,
+    "items": [
+        {
+            "type": "Wait",
+            "stop_name": "Biryulyovo Tovarnaya",
+            "time": 2
+        },
+        {
+            "type": "Bus",
+            "bus": "635",
+            "time": 14.32,
+            "span_count": 5
+        }
+    ]
+  },
+  {
+    "request_id": 10,
+    "total_time": 12.04,
+    "items": [
+        {
+            "type": "Wait",
+            "stop_name": "Apteka",
+            "time": 2
+        },
+        {
+            "type": "Bus",
+            "bus": "297",
+            "time": 2.84,
+            "span_count": 1
+        },
+        {
+            "type": "Wait",
+            "stop_name": "Biryulyovo Zapadnoye",
+            "time": 2
+        },
+        {
+            "type": "Bus",
+            "bus": "297",
+            "time": 5.2,
+            "span_count": 1
+        }
+    ]
+  },
+  {
+    "request_id": 11,
+    "error_message": "not found"
+  }
+]
