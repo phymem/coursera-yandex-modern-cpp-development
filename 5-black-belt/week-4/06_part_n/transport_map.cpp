@@ -1,6 +1,7 @@
 #include "transport_map.h"
 
 #include <cassert>
+#include <sstream>
 #include <algorithm>
 
 using namespace std;
@@ -269,33 +270,33 @@ void TransportMap::ProcBuses() {
 	}
 }
 
-void TransportMap::Render(ostream& os, const TransportRouter::RouteInfo* route) const {
-	os << R"("<?xml version=\"1.0\" encoding=\"UTF-8\" ?>)"
-		R"(<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\">)";
+std::string TransportMap::Render(const TransportRouter::RouteInfo* route) const {
+	ostringstream oss;
+	oss << Svg::Header;
 
 	for (RenderSettings::LayerType layer_type : render_settings_.layers) {
 		switch (layer_type) {
 		case RenderSettings::LT_BUS_LINES:
 			for_each(begin(buses_), end(buses_),
-				[&os](const Bus* bus){ os << bus->line; });
+				[&oss](const Bus* bus){ oss << bus->line; });
 			break;
 		case RenderSettings::LT_BUS_LABELS:
 			for_each(begin(buses_), end(buses_),
-				[&os] (const Bus* bus) {
-				os << bus->label_bot << bus->label_top;
+				[&oss] (const Bus* bus) {
+				oss << bus->label_bot << bus->label_top;
 				if (bus->last_stop) {
-					os << Svg::Text{ bus->label_bot }.SetPoint(bus->last_stop->svg_pos);
-					os << Svg::Text{ bus->label_top }.SetPoint(bus->last_stop->svg_pos);
+					oss << Svg::Text{ bus->label_bot }.SetPoint(bus->last_stop->svg_pos);
+					oss << Svg::Text{ bus->label_top }.SetPoint(bus->last_stop->svg_pos);
 				}
 			});
 			break;
 		case RenderSettings::LT_STOP_POINTS:
 			for_each(begin(stops_), end(stops_),
-				[&os](const Stop* stop){ os << stop->circle; });
+				[&oss](const Stop* stop){ oss << stop->circle; });
 			break;
 		case RenderSettings::LT_STOP_LABELS:
 			for_each(begin(stops_), end(stops_),
-				[&os](const Stop* stop){ os << stop->label_bot << stop->label_top; });
+				[&oss](const Stop* stop){ oss << stop->label_bot << stop->label_top; });
 			break;
 		default:
 			assert(!"this should never be called");
@@ -303,10 +304,12 @@ void TransportMap::Render(ostream& os, const TransportRouter::RouteInfo* route) 
 	}
 
 	if (route) {
-		RenderRoute(os, route);
+		RenderRoute(oss, route);
 	}
 
-	os << "</svg>\"";
+	oss << Svg::Ending;
+
+	return oss.str();
 }
 
 void TransportMap::RenderRoute(ostream& os, const TransportRouter::RouteInfo* route) const {

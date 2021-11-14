@@ -80,7 +80,7 @@ void ProcessRoute(
 		os << '}';
 	}
 	os << "], \"map\": ";
-	transport_map.Render(os, &(*route));
+	//AG- transport_map.Render(os, &(*route));
 }
 
 } // namespace
@@ -97,6 +97,7 @@ Json::Array ProcessRequests(
 	for (const Json::Node& req_node : requests) {
 		const Json::Dict& req_dict = req_node.AsMap();
 		const std::string req_type = req_dict.at("type").AsString();
+		Json::Dict dict;
 		if (req_type == "Bus") {
 			; // ProcessBus(os, desc.GetBus(dict.at("name").AsString()));
 		} else if (req_type == "Stop") {
@@ -104,15 +105,12 @@ Json::Array ProcessRequests(
 		} else if (req_type == "Route") {
 			; // ProcessRoute(os, router, transport_map, dict);
 		} else if (req_type == "Map") {
-			; // os << "\"map\": ";
-			; // transport_map.Render(os, nullptr /*route*/);
+			dict = Json::Dict{ {"map", Json::Node(transport_map.Render(nullptr /*route*/)) } };
 		} else {
 			throw invalid_argument("invalid request type - "s + req_type);
 		}
-		Json::Dict dict {
-			{ "request_id", Json::Node(req_dict.at("id").AsInt()) }
-		};
-		responces.push_back(dict);
+		dict["request_id"] = Json::Node(req_dict.at("id").AsInt());
+		responces.push_back(std::move(dict));
 	}
 
 	return responces;

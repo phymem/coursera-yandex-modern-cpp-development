@@ -15,7 +15,7 @@ public:
 		const Descriptions& desc,
 		const Json::Dict& render_settings);
 
-	void Render(std::ostream& os, const TransportRouter::RouteInfo* route) const;
+	std::string Render(const TransportRouter::RouteInfo* route) const;
 
 private:
 

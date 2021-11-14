@@ -74,13 +74,13 @@ public:
 	T& SetStrokeLineJoin(const std::string& join) { linejoin = join; return static_cast<T&>(*this); }
 
 	friend std::ostream& operator << (std::ostream& os, base_cref_t obj) {
-		os << "fill=\\\"" << obj.fill_color << "\\\""
-			<< " stroke=\\\"" << obj.stroke_color << "\\\""
-			<< " stroke-width=\\\"" << obj.stroke_width << "\\\"";
+		os << "fill=\"" << obj.fill_color << "\""
+			<< " stroke=\"" << obj.stroke_color << "\""
+			<< " stroke-width=\"" << obj.stroke_width << "\"";
 		if (!obj.linecap.empty())
-			os << " stroke-linecap=\\\"" << obj.linecap << "\\\"";
+			os << " stroke-linecap=\"" << obj.linecap << "\"";
 		if (!obj.linejoin.empty())
-			os << " stroke-linejoin=\\\"" << obj.linejoin << "\\\"";
+			os << " stroke-linejoin=\"" << obj.linejoin << "\"";
 		return os;
 	}
 
@@ -105,11 +105,11 @@ public:
 
 	friend std::ostream& operator << (std::ostream& os, const Circle& circle) {
 		std::streamsize default_precision = os.precision();
-		return os << "<circle cx=\\\"" << circle.center.x
-			<< "\\\" cy=\\\"" << circle.center.y
+		return os << "<circle cx=\"" << circle.center.x
+			<< "\" cy=\"" << circle.center.y
 			<< std::setprecision(default_precision)
-			<< "\\\" r=\\\"" << circle.radius
-			<< "\\\" " << static_cast<Circle::base_cref_t>(circle) << " />";
+			<< "\" r=\"" << circle.radius
+			<< "\" " << static_cast<Circle::base_cref_t>(circle) << " />";
 	}
 
 private:
@@ -135,16 +135,16 @@ public:
 
 	friend std::ostream& operator << (std::ostream& os, const Text& text) {
 		std::streamsize default_precision = os.precision();
-		os << "<text x=\\\"" << text.point.x
-			<< "\\\" y=\\\"" << text.point.y
+		os << "<text x=\"" << text.point.x
+			<< "\" y=\"" << text.point.y
 			<< std::setprecision(default_precision)
-			<< "\\\" dx=\\\"" << text.offset.x
-			<< "\\\" dy=\\\"" << text.offset.y
-			<< "\\\" font-size=\\\"" << text.font_size << "\\\"";
+			<< "\" dx=\"" << text.offset.x
+			<< "\" dy=\"" << text.offset.y
+			<< "\" font-size=\"" << text.font_size << "\"";
 		if (!text.font_family.empty())
-			os << " font-family=\\\"" << text.font_family << "\\\"";
+			os << " font-family=\"" << text.font_family << "\"";
 		if (!text.font_weight.empty())
-			os << " font-weight=\\\"" << text.font_weight << "\\\"";
+			os << " font-weight=\"" << text.font_weight << "\"";
 		return os << " " << static_cast<Text::base_cref_t>(text) << " >" << text.text << "</text>";
 	}
 
@@ -167,7 +167,7 @@ public:
 
 	std::ostream& Render(std::ostream& os, size_t from, size_t count) const {
 		std::streamsize default_precision = os.precision();
-		os << "<polyline points=\\\"";
+		os << "<polyline points=\"";
 		if (count) {
 			// XXX range check
 			points.at(from);
@@ -179,7 +179,7 @@ public:
 			os << pnt.x << ',' << pnt.y;
 		}
 		return os << std::setprecision(default_precision)
-			<< "\\\" " << static_cast<Polyline::base_cref_t>(*this) << " />";
+			<< "\" " << static_cast<Polyline::base_cref_t>(*this) << " />";
 	}
 
 	friend std::ostream& operator << (std::ostream& os, const Polyline& line) {
@@ -205,12 +205,12 @@ public:
 
 	friend std::ostream& operator << (std::ostream& os, const Rect& rect) {
 		std::streamsize default_precision = os.precision();
-		return os << "<rect x=\\\"" << rect.point.x
-			<< "\\\" y=\\\"" << rect.point.y
+		return os << "<rect x=\"" << rect.point.x
+			<< "\" y=\"" << rect.point.y
 			<< std::setprecision(default_precision)
-			<< "\\\" width=\\\"" << rect.width
-			<< "\\\" height=\\\"" << rect.height
-			<< "\\\" " << static_cast<Rect::base_cref_t>(rect) << " />";
+			<< "\" width=\"" << rect.width
+			<< "\" height=\"" << rect.height
+			<< "\" " << static_cast<Rect::base_cref_t>(rect) << " />";
 	}
 
 private:
@@ -219,6 +219,9 @@ private:
 	double width;
 	double height;
 };
+
+const inline std::string Header = R"(<?xml version="1.0" encoding="UTF-8" ?><svg xmlns="http://www.w3.org/2000/svg" version="1.1">)";
+const inline std::string Ending = "</svg>";
 
 class Document {
 public:
@@ -230,14 +233,13 @@ public:
 	}
 
 	void Render(std::ostream& os) const {
-		os << R"(<?xml version=\"1.0\" encoding=\"UTF-8\" ?>)"
-			R"(<svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\">)";
+		os << Header;
 
 		for (const ObjVariant& obj : objects) {
 			std::visit([&os](const auto& p) { os << p; }, obj);
 		}
 
-		os << "</svg>";
+		os << Ending;
 	}
 
 private:
