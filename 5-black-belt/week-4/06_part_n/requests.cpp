@@ -96,22 +96,21 @@ Json::Array ProcessRequests(
 	Json::Array responces;
 	responces.reserve(requests.size());
 
-	for (const Json::Node& req_node : requests) {
-		const Json::Dict& req_dict = req_node.AsMap();
-		const std::string req_type = req_dict.at("type").AsString();
+	for (const Json::Node& req : requests) {
+		const std::string req_type = req.AsMap().at("type").AsString();
 		Json::Dict dict;
 		if (req_type == "Bus") {
-			dict = ProcessBus(desc.GetBus(dict.at("name").AsString()));
+			dict = ProcessBus(desc.GetBus(req.AsMap().at("name").AsString()));
 		} else if (req_type == "Stop") {
-			dict = ProcessStop(desc.GetStop(dict.at("name").AsString()));
+			dict = ProcessStop(desc.GetStop(req.AsMap().at("name").AsString()));
 		} else if (req_type == "Route") {
-			dict = ProcessRoute(router, transport_map, req_dict);
+			dict = ProcessRoute(router, transport_map, req.AsMap());
 		} else if (req_type == "Map") {
 			dict = Json::Dict{ {"map", Json::Node(transport_map.Render(nullptr /*route*/)) } };
 		} else {
 			throw invalid_argument("invalid request type - "s + req_type);
 		}
-		dict["request_id"] = Json::Node(req_dict.at("id").AsInt());
+		dict["request_id"] = Json::Node(req.AsMap().at("id").AsInt());
 		responces.push_back(std::move(dict));
 	}
 
