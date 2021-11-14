@@ -18,15 +18,16 @@ inline ostream& operator << (ostream& os, const pair<const char*, const char*>& 
 	return os << '"' << p.first << "\": \"" << p.second << '"';
 }
 
-void ProcessBus(ostream& os, const Descriptions::Bus* bus) {
+Json::Dict ProcessBus(const Descriptions::Bus* bus) {
 	if (!bus) {
-		os << make_pair("error_message", "not found");
-		return;
+		return Json::Dict{ {"error_message", Json::Node("not found")} };
 	}
-	os << make_pair("stop_count", bus->stops.size()) << ", "
-	<< make_pair("unique_stop_count", bus->unique_stop_count) << ", "
-	<< make_pair("route_length",bus->road_route_length) << ", "
-	<< make_pair("curvature", bus->road_route_length / bus->geo_route_distance);
+	return Json::Dict{
+		{ "stop_count", Json::Node(static_cast<int>(bus->stops.size())) },
+		{ "unique_stop_count", Json::Node(bus->unique_stop_count) },
+		{ "route_length", Json::Node(bus->road_route_length) },
+		{ "curvature", Json::Node(bus->road_route_length / bus->geo_route_distance) }
+	};
 }
 
 void ProcessStop(ostream& os, const Descriptions::Stop* stop) {
@@ -99,7 +100,7 @@ Json::Array ProcessRequests(
 		const std::string req_type = req_dict.at("type").AsString();
 		Json::Dict dict;
 		if (req_type == "Bus") {
-			; // ProcessBus(os, desc.GetBus(dict.at("name").AsString()));
+			dict = ProcessBus(desc.GetBus(dict.at("name").AsString()));
 		} else if (req_type == "Stop") {
 			; // ProcessStop(os, desc.GetStop(dict.at("name").AsString()));
 		} else if (req_type == "Route") {
