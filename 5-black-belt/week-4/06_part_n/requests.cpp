@@ -20,7 +20,7 @@ inline ostream& operator << (ostream& os, const pair<const char*, const char*>& 
 
 Json::Dict ProcessBus(const Descriptions::Bus* bus) {
 	if (!bus) {
-		return Json::Dict{ {"error_message", Json::Node("not found")} };
+		return Json::Dict{ { "error_message", Json::Node("not found") } };
 	}
 	return Json::Dict{
 		{ "stop_count", Json::Node(static_cast<int>(bus->stops.size())) },
@@ -32,7 +32,7 @@ Json::Dict ProcessBus(const Descriptions::Bus* bus) {
 
 Json::Dict ProcessStop(const Descriptions::Stop* stop) {
 	if (!stop) {
-		return Json::Dict{ {"error_message", Json::Node("not found")} };
+		return Json::Dict{ { "error_message", Json::Node("not found") } };
 	}
 	Json::Array buses;
 	buses.reserve(stop->buses.size());
@@ -44,44 +44,45 @@ Json::Dict ProcessStop(const Descriptions::Stop* stop) {
 	return dict;
 }
 
-void ProcessRoute(
-	ostream& os,
+Json::Dict ProcessRoute(
 	const TransportRouter& router,
 	const TransportMap& transport_map,
-	const Json::Dict& dict
+	const Json::Dict& req_dict
 ) {
 	const auto route = router.FindRoute(
-		dict.at("from").AsString(),
-		dict.at("to").AsString()
+		req_dict.at("from").AsString(),
+		req_dict.at("to").AsString()
 	);
 	if (!route) {
-		os << make_pair("error_message", "not found");
-		return;
+		return Json::Dict{ { "error_message", Json::Node("not found") } };
 	}
-	os << make_pair("total_time", route->total_time) << ", \"items\": [";
-	const char* delim = "";
-	for (const auto& item : route->items) {
-		os << delim << '{';
-		delim = ", ";
+	Json::Array items;
+	items.reserve(route->items.size());
+	for (const auto& it : route->items) {
 		struct processor {
-			ostream& os;
-			void operator() (const TransportRouter::RouteInfo::BusItem& bus) {
-				os << make_pair("type", "Bus") << ", "
-				<< make_pair("bus", bus.bus->name.c_str()) << ", "
-				<< make_pair("time", bus.time) << ", "
-				<< make_pair("span_count", bus.span_count);
+			Json::Dict operator() (const TransportRouter::RouteInfo::BusItem& bus) {
+				return Json::Dict{
+					{ "type", Json::Node("Bus") },
+					{ "bus", Json::Node(bus.bus->name) },
+					{ "time", Json::Node(bus.time) },
+					{ "span_count", Json::Node(static_cast<int>(bus.span_count)) }
+				};
 			}
-			void operator() (const TransportRouter::RouteInfo::WaitItem& wait) {
-				os << make_pair("type", "Wait") << ", "
-				<< make_pair("stop_name", wait.stop->name.c_str()) << ", "
-				<< make_pair("time", wait.time);
+			Json::Dict operator() (const TransportRouter::RouteInfo::WaitItem& wait) {
+				return Json::Dict{
+					{ "type", Json::Node("Wait") },
+					{ "stop_name", Json::Node(wait.stop->name) },
+					{ "time", Json::Node(wait.time) }
+				};
 			}
 		};
-		visit(processor{ .os = os }, item);
-		os << '}';
+		items.push_back(visit(processor{}, it));
 	}
-	os << "], \"map\": ";
-	//AG- transport_map.Render(os, &(*route));
+	Json::Dict dict;
+	dict["items"] = std::move(items);
+	dict["total_time"] = Json::Node(route->total_time);
+	dict["map"] = Json::Node(transport_map.Render(&(*route)));
+	return dict;
 }
 
 } // namespace
@@ -104,7 +105,7 @@ Json::Array ProcessRequests(
 		} else if (req_type == "Stop") {
 			dict = ProcessStop(desc.GetStop(dict.at("name").AsString()));
 		} else if (req_type == "Route") {
-			; // ProcessRoute(os, router, transport_map, dict);
+			dict = ProcessRoute(router, transport_map, req_dict);
 		} else if (req_type == "Map") {
 			dict = Json::Dict{ {"map", Json::Node(transport_map.Render(nullptr /*route*/)) } };
 		} else {
