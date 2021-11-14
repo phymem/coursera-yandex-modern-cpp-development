@@ -26,12 +26,14 @@ int main() {
 		input_map.at("render_settings").AsMap()
 	);
 
-	ProcessRequests(
-		cout,
-		descriptions,
-		router,
-		transport_map,
-		input_map.at("stat_requests").AsArray()
+	PrintValue(
+		ProcessRequests(
+			descriptions,
+			router,
+			transport_map,
+			input_map.at("stat_requests").AsArray()
+		),
+		cout
 	);
 
 	cout << endl;

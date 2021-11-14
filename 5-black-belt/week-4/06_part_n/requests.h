@@ -8,8 +8,7 @@ class Descriptions;
 class TransportMap;
 class TransportRouter;
 
-void ProcessRequests(
-	std::ostream& os,
+Json::Array ProcessRequests(
 	const Descriptions& desc,
 	const TransportRouter& router,
 	const TransportMap& transport_map,

@@ -85,39 +85,35 @@ void ProcessRoute(
 
 } // namespace
 
-void ProcessRequests(
-	std::ostream& os,
+Json::Array ProcessRequests(
 	const Descriptions& desc,
 	const TransportRouter& router,
 	const TransportMap& transport_map,
 	const Json::Array& requests
 ) {
-	os << '[';
+	Json::Array responces;
+	responces.reserve(requests.size());
 
-	const char* left_brace = "{";
-	for (const Json::Node& node : requests) {
-		os << left_brace;
-		left_brace = ", {";
-
-		const Json::Dict& dict = node.AsMap();
-		os << make_pair("request_id", dict.at("id").AsInt()) << ", ";
-
-		const string& type = dict.at("type").AsString();
-		if (type == "Bus") {
-			ProcessBus(os, desc.GetBus(dict.at("name").AsString()));
-		} else if (type == "Stop") {
-			ProcessStop(os, desc.GetStop(dict.at("name").AsString()));
-		} else if (type == "Route") {
-			ProcessRoute(os, router, transport_map, dict);
-		} else if (type == "Map") {
-			os << "\"map\": ";
-			transport_map.Render(os, nullptr /*route*/);
+	for (const Json::Node& req_node : requests) {
+		const Json::Dict& req_dict = req_node.AsMap();
+		const std::string req_type = req_dict.at("type").AsString();
+		if (req_type == "Bus") {
+			; // ProcessBus(os, desc.GetBus(dict.at("name").AsString()));
+		} else if (req_type == "Stop") {
+			; // ProcessStop(os, desc.GetStop(dict.at("name").AsString()));
+		} else if (req_type == "Route") {
+			; // ProcessRoute(os, router, transport_map, dict);
+		} else if (req_type == "Map") {
+			; // os << "\"map\": ";
+			; // transport_map.Render(os, nullptr /*route*/);
 		} else {
-			throw invalid_argument("invalid request type - "s + type);
+			throw invalid_argument("invalid request type - "s + req_type);
 		}
-
-		os << '}';
+		Json::Dict dict {
+			{ "request_id", Json::Node(req_dict.at("id").AsInt()) }
+		};
+		responces.push_back(dict);
 	}
 
-	os << ']';
+	return responces;
 }
