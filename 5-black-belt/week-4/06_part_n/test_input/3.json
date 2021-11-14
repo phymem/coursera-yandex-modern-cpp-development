@@ -1,0 +1,190 @@
+{
+  "base_requests": [
+    {
+      "is_roundtrip": true,
+      "name": "14",
+      "stops": [
+        "Ulitsa Lizy Chaykinoy",
+        "Elektroseti",
+        "Riv'erskiy most",
+        "Gostinitsa Sochi",
+        "Kubanskaya ulitsa",
+        "Po trebovaniyu",
+        "Ulitsa Dokuchaeva",
+        "Ulitsa Lizy Chaykinoy"
+      ],
+      "type": "Bus"
+    },
+    {
+      "is_roundtrip": false,
+      "name": "24",
+      "stops": [
+        "Ulitsa Dokuchaeva",
+        "Parallel'naya ulitsa",
+        "Elektroseti",
+        "Sanatoriy Rodina"
+      ],
+      "type": "Bus"
+    },
+    {
+      "is_roundtrip": false,
+      "name": "114",
+      "stops": [
+        "Morskoy vokzal",
+        "Riv'erskiy most"
+      ],
+      "type": "Bus"
+    },
+    {
+      "latitude": 43.590317,
+      "longitude": 39.746833,
+      "name": "Ulitsa Lizy Chaykinoy",
+      "road_distances": {
+        "Elektroseti": 4300,
+        "Ulitsa Dokuchaeva": 2000
+      },
+      "type": "Stop"
+    },
+    {
+      "latitude": 43.581969,
+      "longitude": 39.719848,
+      "name": "Morskoy vokzal",
+      "road_distances": {
+        "Riv'erskiy most": 850
+      },
+      "type": "Stop"
+    },
+    {
+      "latitude": 43.598701,
+      "longitude": 39.730623,
+      "name": "Elektroseti",
+      "road_distances": {
+        "Parallel'naya ulitsa": 1200,
+        "Riv'erskiy most": 1900,
+        "Sanatoriy Rodina": 4500
+      },
+      "type": "Stop"
+    },
+    {
+      "latitude": 43.587795,
+      "longitude": 39.716901,
+      "name": "Riv'erskiy most",
+      "road_distances": {
+        "Gostinitsa Sochi": 1740,
+        "Morskoy vokzal": 850
+      },
+      "type": "Stop"
+    },
+    {
+      "latitude": 43.578079,
+      "longitude": 39.728068,
+      "name": "Gostinitsa Sochi",
+      "road_distances": {
+        "Kubanskaya ulitsa": 320
+      },
+      "type": "Stop"
+    },
+    {
+      "latitude": 43.578509,
+      "longitude": 39.730959,
+      "name": "Kubanskaya ulitsa",
+      "road_distances": {
+        "Po trebovaniyu": 370
+      },
+      "type": "Stop"
+    },
+    {
+      "latitude": 43.579285,
+      "longitude": 39.733742,
+      "name": "Po trebovaniyu",
+      "road_distances": {
+        "Ulitsa Dokuchaeva": 600
+      },
+      "type": "Stop"
+    },
+    {
+      "latitude": 43.585586,
+      "longitude": 39.733879,
+      "name": "Ulitsa Dokuchaeva",
+      "road_distances": {
+        "Parallel'naya ulitsa": 1100
+      },
+      "type": "Stop"
+    },
+    {
+      "latitude": 43.590041,
+      "longitude": 39.732886,
+      "name": "Parallel'naya ulitsa",
+      "road_distances": {},
+      "type": "Stop"
+    },
+    {
+      "latitude": 43.601202,
+      "longitude": 39.715498,
+      "name": "Sanatoriy Rodina",
+      "road_distances": {},
+      "type": "Stop"
+    }
+  ],
+  "render_settings": {
+    "bus_label_font_size": 20,
+    "bus_label_offset": [
+      7,
+      15
+    ],
+    "color_palette": [
+      "green",
+      [
+        255,
+        160,
+        0
+      ],
+      "red"
+    ],
+    "height": 500,
+    "layers": [
+      "bus_lines",
+      "bus_labels",
+      "stop_points",
+      "stop_labels"
+    ],
+    "line_width": 14,
+    "outer_margin": 150,
+    "padding": 50,
+    "stop_label_font_size": 18,
+    "stop_label_offset": [
+      7,
+      -3
+    ],
+    "stop_radius": 5,
+    "underlayer_color": [
+      255,
+      255,
+      255,
+      0.85
+    ],
+    "underlayer_width": 3,
+    "width": 1200
+  },
+  "routing_settings": {
+    "bus_velocity": 30,
+    "bus_wait_time": 2
+  },
+  "stat_requests": [
+    {
+      "id": 1676468909,
+      "name": "14",
+      "type": "Bus"
+    },
+    {
+      "from": "Morskoy vokzal",
+      "id": 222620494,
+      "to": "Parallel'naya ulitsa",
+      "type": "Route"
+    },
+    {
+      "id": 1545963379,
+      "type": "Map"
+    }
+  ]
+}
