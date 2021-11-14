@@ -30,18 +30,18 @@ Json::Dict ProcessBus(const Descriptions::Bus* bus) {
 	};
 }
 
-void ProcessStop(ostream& os, const Descriptions::Stop* stop) {
+Json::Dict ProcessStop(const Descriptions::Stop* stop) {
 	if (!stop) {
-		os << make_pair("error_message", "not found");
-		return;
+		return Json::Dict{ {"error_message", Json::Node("not found")} };
 	}
-	os << "\"buses\": [";
-	const char* delim = "";
+	Json::Array buses;
+	buses.reserve(stop->buses.size());
 	for (const auto& [_, bus] : stop->buses) {
-		os << delim << '"' << bus->name << '"';
-		delim = ", ";
+		buses.emplace_back(bus->name);
 	}
-	os << ']';
+	Json::Dict dict;
+	dict["buses"] = std::move(buses);
+	return dict;
 }
 
 void ProcessRoute(
@@ -102,7 +102,7 @@ Json::Array ProcessRequests(
 		if (req_type == "Bus") {
 			dict = ProcessBus(desc.GetBus(dict.at("name").AsString()));
 		} else if (req_type == "Stop") {
-			; // ProcessStop(os, desc.GetStop(dict.at("name").AsString()));
+			dict = ProcessStop(desc.GetStop(dict.at("name").AsString()));
 		} else if (req_type == "Route") {
 			; // ProcessRoute(os, router, transport_map, dict);
 		} else if (req_type == "Map") {
