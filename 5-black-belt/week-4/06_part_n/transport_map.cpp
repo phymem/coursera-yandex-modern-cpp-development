@@ -277,26 +277,30 @@ std::string TransportMap::Render(const TransportRouter::RouteInfo* route) const 
 	for (RenderSettings::LayerType layer_type : render_settings_.layers) {
 		switch (layer_type) {
 		case RenderSettings::LT_BUS_LINES:
-			for_each(begin(buses_), end(buses_),
-				[&oss](const Bus* bus){ oss << bus->line; });
+			for (const Bus* bus : buses_) {
+				bus->line.Render(oss);
+			}
 			break;
 		case RenderSettings::LT_BUS_LABELS:
-			for_each(begin(buses_), end(buses_),
-				[&oss] (const Bus* bus) {
-				oss << bus->label_bot << bus->label_top;
+			for (const Bus* bus : buses_) {
+				bus->label_bot.Render(oss);
+				bus->label_top.Render(oss);
 				if (bus->last_stop) {
-					oss << Svg::Text{ bus->label_bot }.SetPoint(bus->last_stop->svg_pos);
-					oss << Svg::Text{ bus->label_top }.SetPoint(bus->last_stop->svg_pos);
+					Svg::Text{ bus->label_bot }.SetPoint(bus->last_stop->svg_pos).Render(oss);
+					Svg::Text{ bus->label_top }.SetPoint(bus->last_stop->svg_pos).Render(oss);
 				}
-			});
+			}
 			break;
 		case RenderSettings::LT_STOP_POINTS:
-			for_each(begin(stops_), end(stops_),
-				[&oss](const Stop* stop){ oss << stop->circle; });
+			for (const Stop* stop : stops_) {
+				stop->circle.Render(oss);
+			}
 			break;
 		case RenderSettings::LT_STOP_LABELS:
-			for_each(begin(stops_), end(stops_),
-				[&oss](const Stop* stop){ oss << stop->label_bot << stop->label_top; });
+			for (const Stop* stop : stops_) {
+				stop->label_bot.Render(oss);
+				stop->label_top.Render(oss);
+			}
 			break;
 		default:
 			assert(!"this should never be called");
@@ -313,11 +317,12 @@ std::string TransportMap::Render(const TransportRouter::RouteInfo* route) const 
 }
 
 void TransportMap::RenderRoute(ostream& os, const TransportRouter::RouteInfo* route) const {
-	os << Svg::Rect{}
+	Svg::Rect{}
 		.SetPoint(Svg::Point{-render_settings_.outer_margin, -render_settings_.outer_margin})
 		.SetHeight(render_settings_.height + 2 * render_settings_.outer_margin)
 		.SetWidth(render_settings_.width + 2 * render_settings_.outer_margin)
-		.SetFillColor(render_settings_.underlayer.color);
+		.SetFillColor(render_settings_.underlayer.color)
+		.Render(os);
 
 	for (RenderSettings::LayerType layer_type : render_settings_.layers) {
 		switch (layer_type) {
@@ -339,11 +344,12 @@ void TransportMap::RenderRoute(ostream& os, const TransportRouter::RouteInfo* ro
 					};
 					for (const Stop* stop : route_stops) {
 						if (stop == bus->first_stop) {
-							os << bus->label_bot << bus->label_top;
+							bus->label_bot.Render(os);
+							bus->label_top.Render(os);
 						}
 						else if (stop == bus->last_stop) {
-							os << Svg::Text{ bus->label_bot }.SetPoint(bus->last_stop->svg_pos);
-							os << Svg::Text{ bus->label_top }.SetPoint(bus->last_stop->svg_pos);
+							Svg::Text{ bus->label_bot }.SetPoint(bus->last_stop->svg_pos).Render(os);
+							Svg::Text{ bus->label_top }.SetPoint(bus->last_stop->svg_pos).Render(os);
 						}
 					}
 				}
@@ -354,7 +360,7 @@ void TransportMap::RenderRoute(ostream& os, const TransportRouter::RouteInfo* ro
 				if (const auto* p = get_if<TransportRouter::RouteInfo::BusItem>(&item)) {
 					const Bus* bus = &bus_items_[p->bus->bus_id];
 					for (size_t i = 0; i <= p->span_count; ++i) {
-						os << stop_items_[bus->desc->stops[p->first_stop_idx + i]->stop_id].circle;
+						stop_items_[bus->desc->stops[p->first_stop_idx + i]->stop_id].circle.Render(os);
 					}
 				}
 			}
@@ -368,10 +374,12 @@ void TransportMap::RenderRoute(ostream& os, const TransportRouter::RouteInfo* ro
 							bus->desc->stops[p->first_stop_idx]->stop_id];
 						last_stop = &stop_items_[
 							bus->desc->stops[p->first_stop_idx + p->span_count]->stop_id];
-						os << stop->label_bot << stop->label_top;
+						stop->label_bot.Render(os);
+						stop->label_top.Render(os);
 					}
 				}
-				os << last_stop->label_bot << last_stop->label_top;
+				last_stop->label_bot.Render(os);
+				last_stop->label_top.Render(os);
 			}
 			break;
 		default:

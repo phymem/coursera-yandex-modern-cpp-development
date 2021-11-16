@@ -1,250 +1,209 @@
 #pragma once
 
 #include <iostream>
-#include <iomanip>
+#include <memory>
+#include <optional>
+#include <string>
+#include <utility>
 #include <variant>
 #include <vector>
 
 namespace Svg {
 
+inline static const std::string Header = "<?xml version=\"1.0\" encoding=\"UTF-8\" ?><svg xmlns=\"http://www.w3.org/2000/svg\" version=\"1.1\">";
+inline static const std::string Ending = "</svg>";
+
 struct Point {
-	double x;
-	double y;
+	double x = 0;
+	double y = 0;
 };
 
 struct Rgb {
-	unsigned char red;
-	unsigned char green;
-	unsigned char blue;
-
-	friend std::ostream& operator << (std::ostream& os, const Rgb& rgb) {
-		return os << "rgb("
-			<< static_cast<int>(rgb.red) << ','
-			<< static_cast<int>(rgb.green) << ','
-			<< static_cast<int>(rgb.blue) << ')';
-	}
+	uint8_t red;
+	uint8_t green;
+	uint8_t blue;
 };
 
-struct Rgba {
-	unsigned char red;
-	unsigned char green;
-	unsigned char blue;
-	double alpha;
-
-	friend std::ostream& operator << (std::ostream& os, const Rgba& rgba) {
-		return os << "rgba("
-			<< static_cast<int>(rgba.red) << ','
-			<< static_cast<int>(rgba.green) << ','
-			<< static_cast<int>(rgba.blue) << ','
-			<< rgba.alpha << ')';
-	}
+struct Rgba : Rgb {
+	double opacity;
 };
 
 using Color = std::variant<std::monostate, std::string, Rgb, Rgba>;
 const Color NoneColor{};
 
-inline std::ostream& operator << (std::ostream& os, const Color& color) {
-	struct color_visitor {
-		color_visitor(std::ostream& os) : ros(os) {}
-		std::ostream& ros;
-		void operator () (std::monostate ) { ros << "none"; }
-		void operator () (const std::string& str) { ros << str; }
-		void operator () (Rgb rgb) { ros << rgb; }
-		void operator () (Rgba rgba) { ros << rgba; }
-	};
-	std::visit(color_visitor(os), color);
-	return os;
+void RenderColor(std::ostream& out, const Color& color);
+
+class Object {
+public:
+	virtual void Render(std::ostream& out) const = 0;
+	virtual ~Object() = default;
+};
+
+template <typename Owner>
+class PathProps {
+public:
+	Owner& SetFillColor(const Color& color);
+	Owner& SetStrokeColor(const Color& color);
+	Owner& SetStrokeWidth(double value);
+	Owner& SetStrokeLineCap(const std::string& value);
+	Owner& SetStrokeLineJoin(const std::string& value);
+	void RenderAttrs(std::ostream& out) const;
+
+protected:
+	Color fill_color_;
+	Color stroke_color_;
+	double stroke_width_ = 1.0;
+	std::optional<std::string> stroke_line_cap_;
+	std::optional<std::string> stroke_line_join_;
+
+private:
+	Owner& AsOwner();
+};
+
+class Circle : public Object, public PathProps<Circle> {
+public:
+	Circle& SetCenter(Point point);
+	Circle& SetRadius(double radius);
+	void Render(std::ostream& out) const override;
+
+private:
+	Point center_;
+	double radius_ = 1;
+};
+
+class Polyline : public Object, public PathProps<Polyline> {
+public:
+	Polyline& AddPoint(Point point);
+
+	void Render(std::ostream& out) const override {
+		Render(out, 0, points_.size());
+	}
+
+	void Render(std::ostream& out, size_t from, size_t count) const {
+		out << "<polyline points=\"";
+		for (unsigned int i = 0; i < count; ++i) {
+			const Point& pnt = points_[i + from];
+			out << pnt.x << "," << pnt.y << " ";
+		}
+		out << "\" ";
+		PathProps::RenderAttrs(out);
+		out << "/>";
+	}
+
+private:
+	std::vector<Point> points_;
+};
+
+class Rect : public Object, public PathProps<Polyline> {
+public:
+
+	Rect& SetPoint(Point pnt) { point_ = pnt; return *this; }
+	Rect& SetWidth(double w) { width_ = w; return *this; }
+	Rect& SetHeight(double h) { height_ = h; return *this; }
+
+	void Render(std::ostream& out) const override {
+		out << "<rect ";
+		out << "x=\"" << point_.x << "\" ";
+		out << "y=\"" << point_.y << "\" ";
+		out << "width=\"" << width_ << "\" ";
+		out << "height=\"" << height_ << "\" ";
+		PathProps::RenderAttrs(out);
+		out << "/>";
+	}
+
+private:
+
+	Point point_;
+	double width_;
+	double height_;
+};
+
+class Text : public Object, public PathProps<Text> {
+public:
+	Text& SetPoint(Point point);
+	Text& SetOffset(Point point);
+	Text& SetFontSize(uint32_t size);
+	Text& SetFontFamily(const std::string& value);
+	Text& SetFontWeight(const std::string& value);
+	Text& SetData(const std::string& data);
+	void Render(std::ostream& out) const override;
+
+private:
+	Point point_;
+	Point offset_;
+	uint32_t font_size_ = 1;
+	std::optional<std::string> font_family_;
+	std::optional<std::string> font_weight_;
+	std::string data_;
+};
+
+class Document : public Object {
+public:
+	template <typename ObjectType>
+	void Add(ObjectType object);
+
+	void Render(std::ostream& out) const override;
+
+private:
+	std::vector<std::unique_ptr<Object>> objects_;
+};
+
+
+template <typename Owner>
+Owner& PathProps<Owner>::AsOwner() {
+	return static_cast<Owner&>(*this);
 }
 
-template <typename T>
-class SvgObj {
-public:
+template <typename Owner>
+Owner& PathProps<Owner>::SetFillColor(const Color& color) {
+	fill_color_ = color;
+	return AsOwner();
+}
 
-	typedef const SvgObj<T>& base_cref_t;
+template <typename Owner>
+Owner& PathProps<Owner>::SetStrokeColor(const Color& color) {
+	stroke_color_ = color;
+	return AsOwner();
+}
 
-	SvgObj() :
-		fill_color(NoneColor),
-		stroke_color(NoneColor),
-		stroke_width(1.0) {}
+template <typename Owner>
+Owner& PathProps<Owner>::SetStrokeWidth(double value) {
+	stroke_width_ = value;
+	return AsOwner();
+}
 
-	T& SetFillColor(const Color& color) { fill_color = color; return static_cast<T&>(*this); }
-	T& SetStrokeColor(const Color& color) { stroke_color = color; return static_cast<T&>(*this); }
-	T& SetStrokeWidth(double width) { stroke_width = width; return static_cast<T&>(*this); }
-	T& SetStrokeLineCap(const std::string& cap) { linecap = cap; return static_cast<T&>(*this); }
-	T& SetStrokeLineJoin(const std::string& join) { linejoin = join; return static_cast<T&>(*this); }
+template <typename Owner>
+Owner& PathProps<Owner>::SetStrokeLineCap(const std::string& value) {
+	stroke_line_cap_ = value;
+	return AsOwner();
+}
 
-	friend std::ostream& operator << (std::ostream& os, base_cref_t obj) {
-		os << "fill=\"" << obj.fill_color << "\""
-			<< " stroke=\"" << obj.stroke_color << "\""
-			<< " stroke-width=\"" << obj.stroke_width << "\"";
-		if (!obj.linecap.empty())
-			os << " stroke-linecap=\"" << obj.linecap << "\"";
-		if (!obj.linejoin.empty())
-			os << " stroke-linejoin=\"" << obj.linejoin << "\"";
-		return os;
+template <typename Owner>
+Owner& PathProps<Owner>::SetStrokeLineJoin(const std::string& value) {
+	stroke_line_join_ = value;
+	return AsOwner();
+}
+
+template <typename Owner>
+void PathProps<Owner>::RenderAttrs(std::ostream& out) const {
+	out << "fill=\"";
+	RenderColor(out, fill_color_);
+	out << "\" ";
+	out << "stroke=\"";
+	RenderColor(out, stroke_color_);
+	out << "\" ";
+	out << "stroke-width=\"" << stroke_width_ << "\" ";
+	if (stroke_line_cap_) {
+		out << "stroke-linecap=\"" << *stroke_line_cap_ << "\" ";
 	}
-
-private:
-
-	Color fill_color;
-	Color stroke_color;
-	double stroke_width;
-	std::string linecap;
-	std::string linejoin;
-};
-
-class Circle : public SvgObj<Circle> {
-public:
-
-	Circle() :
-		center{0, 0},
-		radius(1.0) {}
-
-	Circle& SetCenter(Point pnt) { center = pnt; return *this; }
-	Circle& SetRadius(double rad) { radius = rad; return *this; }
-
-	friend std::ostream& operator << (std::ostream& os, const Circle& circle) {
-		std::streamsize default_precision = os.precision();
-		return os << "<circle cx=\"" << circle.center.x
-			<< "\" cy=\"" << circle.center.y
-			<< std::setprecision(default_precision)
-			<< "\" r=\"" << circle.radius
-			<< "\" " << static_cast<Circle::base_cref_t>(circle) << " />";
+	if (stroke_line_join_) {
+		out << "stroke-linejoin=\"" << *stroke_line_join_ << "\" ";
 	}
+}
 
-private:
-
-	Point center;
-	double radius;
-};
-
-class Text : public SvgObj<Text> {
-public:
-
-	Text() :
-		point{0, 0},
-		offset{0, 0},
-		font_size(1) {}
-
-	Text& SetPoint(Point pnt) { point = pnt; return *this; }
-	Text& SetOffset(Point pnt) { offset = pnt; return *this; }
-	Text& SetFontSize(uint32_t size) { font_size = size; return *this; }
-	Text& SetFontFamily(const std::string& family) { font_family = family; return *this; }
-	Text& SetFontWeight(const std::string& weight) { font_weight = weight; return *this; }
-	Text& SetData(const std::string& data) { text = data; return *this; }
-
-	friend std::ostream& operator << (std::ostream& os, const Text& text) {
-		std::streamsize default_precision = os.precision();
-		os << "<text x=\"" << text.point.x
-			<< "\" y=\"" << text.point.y
-			<< std::setprecision(default_precision)
-			<< "\" dx=\"" << text.offset.x
-			<< "\" dy=\"" << text.offset.y
-			<< "\" font-size=\"" << text.font_size << "\"";
-		if (!text.font_family.empty())
-			os << " font-family=\"" << text.font_family << "\"";
-		if (!text.font_weight.empty())
-			os << " font-weight=\"" << text.font_weight << "\"";
-		return os << " " << static_cast<Text::base_cref_t>(text) << " >" << text.text << "</text>";
-	}
-
-private:
-
-	Point point;
-	Point offset;
-	uint32_t font_size;
-	std::string font_family;
-	std::string font_weight;
-	std::string text;
-};
-
-class Polyline : public SvgObj<Polyline> {
-public:
-
-	Polyline() {}
-
-	Polyline& AddPoint(Point pnt) { points.push_back(pnt); return *this; }
-
-	std::ostream& Render(std::ostream& os, size_t from, size_t count) const {
-		std::streamsize default_precision = os.precision();
-		os << "<polyline points=\"";
-		if (count) {
-			// XXX range check
-			points.at(from);
-			points.at(from + count - 1);
-		}
-		for (unsigned int i = 0; i < count; ++i) {
-			if (i) os << ' ';
-			const Point& pnt = points[i + from];
-			os << pnt.x << ',' << pnt.y;
-		}
-		return os << std::setprecision(default_precision)
-			<< "\" " << static_cast<Polyline::base_cref_t>(*this) << " />";
-	}
-
-	friend std::ostream& operator << (std::ostream& os, const Polyline& line) {
-		return line.Render(os, 0, line.points.size());
-	}
-
-private:
-
-	std::vector<Point> points;
-};
-
-class Rect : public SvgObj<Rect> {
-public:
-
-	Rect() :
-		point{0, 0},
-		width(0),
-		height(0) {}
-
-	Rect& SetPoint(Point pnt) { point = pnt; return *this; }
-	Rect& SetWidth(double w) { width = w; return *this; }
-	Rect& SetHeight(double h) { height = h; return *this; }
-
-	friend std::ostream& operator << (std::ostream& os, const Rect& rect) {
-		std::streamsize default_precision = os.precision();
-		return os << "<rect x=\"" << rect.point.x
-			<< "\" y=\"" << rect.point.y
-			<< std::setprecision(default_precision)
-			<< "\" width=\"" << rect.width
-			<< "\" height=\"" << rect.height
-			<< "\" " << static_cast<Rect::base_cref_t>(rect) << " />";
-	}
-
-private:
-
-	Point point;
-	double width;
-	double height;
-};
-
-const inline std::string Header = R"(<?xml version="1.0" encoding="UTF-8" ?><svg xmlns="http://www.w3.org/2000/svg" version="1.1">)";
-const inline std::string Ending = "</svg>";
-
-class Document {
-public:
-
-	using ObjVariant = std::variant<Circle, Polyline, Text>;
-	template <typename T>
-	void Add(const T& obj) {
-		objects.push_back( ObjVariant(obj) );
-	}
-
-	void Render(std::ostream& os) const {
-		os << Header;
-
-		for (const ObjVariant& obj : objects) {
-			std::visit([&os](const auto& p) { os << p; }, obj);
-		}
-
-		os << Ending;
-	}
-
-private:
-
-	std::vector<ObjVariant> objects;
-};
+template <typename ObjectType>
+void Document::Add(ObjectType object) {
+	objects_.push_back(std::make_unique<ObjectType>(std::move(object)));
+}
 
 } // namespace Svg
